@@ -155,7 +155,6 @@ export default function MapPlayground({
           const length = Math.hypot(x2 - x1, y2 - y1);
           const angle = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
 
-          // Check if this route is in optimized path
           let isOptimized = false;
           for (let j = 0; j < optimizedPath.length - 1; j++) {
             if (
@@ -167,7 +166,6 @@ export default function MapPlayground({
             }
           }
 
-          // Midpoint for traffic weight
           const midX = (x1 + x2) / 2;
           const midY = (y1 + y2) / 2;
 
