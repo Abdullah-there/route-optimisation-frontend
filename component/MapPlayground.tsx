@@ -93,9 +93,9 @@ export default function MapPlayground({
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
     routes: routes.map(r => ({ from: r.from, to: r.to, weight: r.traffic })),
-    start: startNode.id,
-    end: endNode.id,
-  }),
+    src: startNode.id,
+    dest: endNode.id,
+}),
 })
 
       .then((res) => res.json())
