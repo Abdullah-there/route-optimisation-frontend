@@ -5,7 +5,7 @@ import { useSession } from "next-auth/react";
 import PlaygroundLoader from "./PlaygroundLoader";
 
 interface Node {
-  id: number;
+  nodeid: number;
   x: number;
   y: number;
   label: string;
@@ -17,18 +17,19 @@ interface Route {
   traffic: number;
 }
 
-export default function MapPlayground({
-  onOptimizeCallback,
-}: {
+export interface MapPlaygroundProps {
   onOptimizeCallback: (fn: () => void) => void;
-}) {
+  toggleShrink: () => void;
+}
+
+export default function MapPlayground(props: MapPlaygroundProps) {
   const { data: session, status } = useSession();
-  
+
   const [nodes, setNodes] = useState<Node[]>([]);
   const [routes, setRoutes] = useState<Route[]>([]);
   const [selectedNode, setSelectedNode] = useState<number | null>(null);
   const [optimizedPath, setOptimizedPath] = useState<number[]>([]);
-  const [showLoader, setShowLoader] = useState(false); 
+  const [showLoader, setShowLoader] = useState(false);
 
   const getLabel = (index: number) => {
     let label = "";
@@ -42,7 +43,7 @@ export default function MapPlayground({
 
   const addNode = () => {
     const newNode: Node = {
-      id: nodes.length,
+      nodeid: nodes.length,
       x: Math.random() * 900 + 50,
       y: Math.random() * 400 + 50,
       label: getLabel(nodes.length),
@@ -98,8 +99,8 @@ export default function MapPlayground({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         routes: routes.map(r => ({ from: r.from, to: r.to, weight: r.traffic })),
-        src: startNode.id,
-        dest: endNode.id,
+        src: startNode.nodeid,
+        dest: endNode.nodeid,
       }),
     })
       .then((res) => res.json())
@@ -132,7 +133,7 @@ export default function MapPlayground({
     }
     const myPlaygroundName = prompt("Enter a playground Name");
 
-    fetch("http://localhost:8080/api/playground/save", {
+    fetch("http://localhost:8080/api/playground/saveRoute", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -145,43 +146,69 @@ export default function MapPlayground({
         })),
       }),
     });
+
+    const newNodes = nodes.map(n => ({
+      nodeid: n.nodeid,
+      x: n.x,
+      y: n.y,
+      label: n.label,
+    }));
+
+    console.log(newNodes);
+
+    fetch("http://localhost:8080/api/playground/saveNode", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        playgroundName: myPlaygroundName,
+        nodes: newNodes
+      }),
+    });
   };
 
-  const loadPlayground = (loadedRoutes: any[]) => {
-    setNodes([]);
-    setRoutes([]);
-    setSelectedNode(null);
-    setOptimizedPath([]);
+  const loadPlayground = (loadedRoutes: any) => {
+    if (routes.length !== 0) {
+      if (!window.confirm("Your current route will be lost. Are you sure?")) return;
+    }
 
-    const uniqueNodeIds = new Set<number>();
-    loadedRoutes.forEach((r) => {
-      uniqueNodeIds.add(r.from);
-      uniqueNodeIds.add(r.to);
-    });
+    const backendNodes = loadedRoutes.nodes;
+    const backendRoutes = loadedRoutes.routes;
 
-    let newNodes: Node[] = [];
-    Array.from(uniqueNodeIds).forEach((id: number, index: number) => {
-      newNodes.push({
-        id,
-        x: Math.random() * 900 + 50,
-        y: Math.random() * 400 + 50,
-        label: getLabel(id),
-      });
-    });
+    const newNodes: Node[] = backendNodes.map((n: any) => ({
+      nodeid: Number(n.nodeId),
+      x: n.x,
+      y: n.y,
+      label: n.label,
+    }));
 
-    let newRoutes: Route[] = loadedRoutes.map((r) => ({
-      from: r.from,
-      to: r.to,
+    const newRoutes: Route[] = backendRoutes.map((r: any) => ({
+      from: Number(r.fromNode),
+      to: Number(r.toNode),
       traffic: r.weight,
     }));
 
-    setNodes(newNodes);
-    setRoutes(newRoutes);
+    setSelectedNode(null);
+    setOptimizedPath([]);
     setShowLoader(false);
+
+    setNodes(newNodes);
+
+    setTimeout(() => {
+      setRoutes(newRoutes);
+    }, 0);
   };
 
+  const setLoaderAndShrink = () => {
+    if (session == null) {
+      alert("Login to see your saved routes")
+      return;
+    }
+    setShowLoader(!showLoader);
+    props.toggleShrink();
+  }
+
   useEffect(() => {
-    onOptimizeCallback(optimizeRoute);
+    props.onOptimizeCallback(optimizeRoute);
   }, [optimizeRoute]);
 
   if (status === "loading") return <p>Loading...</p>;
@@ -189,12 +216,8 @@ export default function MapPlayground({
   return (
     <>
       <div className="p-4 flex">
-      
-        <div
-          className={`transition-all duration-300 ${
-            showLoader ? "w-[80%]" : "w-[100%]"
-          }`}
-        >
+
+        <div className={`transition-all duration-300 ${showLoader ? "w-[80vw]" : "w-full"}`}>
           <div className="mb-2 flex gap-2">
             <button className="px-4 py-2 bg-green-500 text-white rounded" onClick={addNode}>
               Add Node
@@ -213,17 +236,17 @@ export default function MapPlayground({
 
             <button
               className="px-4 py-2 bg-gray-700 text-white rounded"
-              onClick={() => setShowLoader(true)}
+              onClick={setLoaderAndShrink}
             >
               See Saved Routes
             </button>
           </div>
 
           <div className="relative w-[95%] h-[500px] border border-gray-300 bg-white">
-            
+
             {routes.map((r, i) => {
-              const start = nodes.find((n) => n.id === r.from);
-              const end = nodes.find((n) => n.id === r.to);
+              const start = nodes.find((n) => n.nodeid === r.from);
+              const end = nodes.find((n) => n.nodeid === r.to);
               if (!start || !end) return null;
 
               const x1 = start.x + 20;
@@ -265,40 +288,36 @@ export default function MapPlayground({
 
             {nodes.map((n) => (
               <Rnd
-                key={n.id}
+                key={n.nodeid}
                 size={{ width: 40, height: 40 }}
                 position={{ x: n.x, y: n.y }}
                 bounds="parent"
                 onDragStop={(e, d) =>
-                  setNodes(nodes.map((nd) => (nd.id === n.id ? { ...nd, x: d.x, y: d.y } : nd)))
+                  setNodes(nodes.map((nd) => (nd.nodeid === n.nodeid ? { ...nd, x: d.x, y: d.y } : nd)))
                 }
               >
                 <div
-                  onClick={() => handleNodeClick(n.id)}
-                  className="w-full h-full flex items-center justify-center rounded-full text-white font-bold cursor-pointer bg-blue-400"
+                  onClick={() => handleNodeClick(n.nodeid)}
+                  className={`w-full h-full flex items-center justify-center rounded-full text-white font-bold cursor-pointer 
+                  ${selectedNode === n.nodeid ? "bg-yellow-500" : "bg-blue-400"}
+                `}
                 >
                   {n.label}
                 </div>
+
               </Rnd>
             ))}
           </div>
         </div>
 
         {showLoader && (
-          <div className="w-[20%] border-l p-3 bg-gray-100 shadow-lg">
-            <button
-              className="mb-3 px-3 py-1 bg-red-500 text-white rounded"
-              onClick={() => setShowLoader(false)}
-            >
-              Close
-            </button>
-
-            <PlaygroundLoader
-              userId={session?.user?.email as string}
-              onLoadPlayground={loadPlayground}
-            />
-          </div>
+          <PlaygroundLoader
+            userId={session?.user?.email as string}
+            onLoadPlayground={loadPlayground}
+            onClose={setLoaderAndShrink}
+          />
         )}
+
       </div>
     </>
   );

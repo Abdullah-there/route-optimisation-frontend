@@ -3,6 +3,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
+import { signOut } from "next-auth/react";
 
 const Navbar = () => {
   const { data: session, status} = useSession();
@@ -20,7 +21,9 @@ const Navbar = () => {
               <li className='transition-all hover:underline hover:text-xl bg-blue-500 text-white hover:bg-white hover:text-blue-500 border-2 border-blue-500 px-4 rounded-md'><Link href={"/auth/login"}>Login</Link></li>
             )}
             {session && (
-              <li className='transition-all hover:underline hover:text-xl bg-blue-500 text-white hover:bg-white hover:text-blue-500 border-2 border-blue-500 px-4 rounded-md cursor-pointer'>Logout</li>
+              <button className='transition-all hover:underline hover:text-xl bg-blue-500 text-white hover:bg-white hover:text-blue-500 border-2 border-blue-500 px-4 rounded-md cursor-pointer'
+                onClick={() => signOut()}
+              >Logout</button>
             )}
         </ul>
     </nav>
