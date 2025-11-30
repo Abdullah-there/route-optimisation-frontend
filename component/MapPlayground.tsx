@@ -109,6 +109,7 @@ export default function MapPlayground(props: MapPlaygroundProps) {
           alert("No optimized path found");
           return;
         }
+        console.log(data);
         setOptimizedPath(data);
         alert("Optimized Path: " + data.map((i) => nodes[i]?.label).join(" → "));
       })
@@ -211,6 +212,21 @@ export default function MapPlayground(props: MapPlaygroundProps) {
     props.onOptimizeCallback(optimizeRoute);
   }, [optimizeRoute]);
 
+  const isOptimizedEdge = (from: number, to: number) => {
+    if (!optimizedPath || optimizedPath.length < 2) return false;
+
+    for (let i = 0; i < optimizedPath.length - 1; i++) {
+      const a = optimizedPath[i];
+      const b = optimizedPath[i + 1];
+
+      if ((a === from && b === to) || (a === to && b === from)) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+
   if (status === "loading") return <p>Loading...</p>;
 
   return (
@@ -262,7 +278,7 @@ export default function MapPlayground(props: MapPlaygroundProps) {
               return (
                 <React.Fragment key={i}>
                   <div
-                    className="absolute bg-blue-500"
+                    className={`absolute ${isOptimizedEdge(r.from, r.to) ? "bg-red-600" : "bg-blue-500"}`}
                     style={{
                       width: length,
                       height: 4,
