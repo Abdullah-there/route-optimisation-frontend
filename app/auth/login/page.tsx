@@ -4,8 +4,10 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { Github } from "lucide-react";
+import { useSession } from "next-auth/react";
 
 export default function LoginPage() {
+  const { data: session, status } = useSession();
   const router = useRouter();
 
   const [email, setEmail] = useState("");
@@ -26,13 +28,19 @@ export default function LoginPage() {
     if (res?.error) {
       setError("Invalid email or password");
     } else {
-      router.push("/");
+      router.back();
     }
   };
 
   const handleGithubLogin = () => {
     signIn("github", { callbackUrl: "/" });
   };
+
+  if (status == "loading") return <p className="text-2xl font-bold text-center mt-80">Loading, This would take a second...</p>
+
+  if (session) {
+    router.push("/");
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">

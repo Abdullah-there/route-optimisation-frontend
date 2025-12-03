@@ -2,11 +2,17 @@
 
 import Navbar from './Navbar'
 import { motion } from "framer-motion";
+import { p } from 'framer-motion/client';
+import { useSession } from 'next-auth/react';
 
 const Home = () => {
+  const { data: session, status} = useSession();
+  
+    if (status == "loading") return <p>Loading ...</p>
+
   return (
     <>
-      <Navbar />
+      <Navbar session={session}/>
 
       <div className="min-h-[90vh] flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-200 px-4 text-center">
 

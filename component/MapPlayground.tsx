@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Rnd } from "react-rnd";
-import { useSession } from "next-auth/react";
 import PlaygroundLoader from "./PlaygroundLoader";
 
 interface Node {
@@ -17,19 +16,21 @@ interface Route {
   traffic: number;
 }
 
-export interface MapPlaygroundProps {
+interface MapPlaygroundProps {
   onOptimizeCallback: (fn: () => void) => void;
   toggleShrink: () => void;
+  session: any;
 }
 
 export default function MapPlayground(props: MapPlaygroundProps) {
-  const { data: session, status } = useSession();
+  const session = props.session;
 
   const [nodes, setNodes] = useState<Node[]>([]);
   const [routes, setRoutes] = useState<Route[]>([]);
   const [selectedNode, setSelectedNode] = useState<number | null>(null);
   const [optimizedPath, setOptimizedPath] = useState<number[]>([]);
-  const [showLoader, setShowLoader] = useState(false);
+  const [showOptions, setShowOptions] = useState<boolean>(false);
+  const [showLoader, setShowLoader] = useState<boolean>(false);
 
   const getLabel = (index: number) => {
     let label = "";
@@ -109,7 +110,47 @@ export default function MapPlayground(props: MapPlaygroundProps) {
           alert("No optimized path found");
           return;
         }
-        console.log(data);
+        setOptimizedPath(data);
+        alert("Optimized Path: " + data.map((i) => nodes[i]?.label).join(" → "));
+      })
+      .catch((err) => console.error(err));
+  };
+
+  const shortestPath = () => {
+    if (nodes.length < 2 || routes.length === 0) {
+      alert("Need at least 2 nodes and 1 route");
+      return;
+    }
+
+    const startLabel = prompt("Enter start node label (e.g., A):");
+    const endLabel = prompt("Enter end node label (e.g., D):");
+    if (!startLabel || !endLabel) {
+      alert("Start or End Label undefined!");
+      return;
+    }
+
+    const startNode = nodes.find((n) => n.label === startLabel.toUpperCase());
+    const endNode = nodes.find((n) => n.label === endLabel.toUpperCase());
+    if (!startNode || !endNode) {
+      alert("Invalid node labels");
+      return;
+    }
+
+    fetch("http://localhost:8080/api/shortest", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        routes: routes.map(r => ({ from: r.from, to: r.to, weight: r.traffic })),
+        src: startNode.nodeid,
+        dest: endNode.nodeid,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data: number[]) => {
+        if (!Array.isArray(data) || data.length === 0) {
+          alert("No optimized path found");
+          return;
+        }
         setOptimizedPath(data);
         alert("Optimized Path: " + data.map((i) => nodes[i]?.label).join(" → "));
       })
@@ -154,8 +195,6 @@ export default function MapPlayground(props: MapPlaygroundProps) {
       y: n.y,
       label: n.label,
     }));
-
-    console.log(newNodes);
 
     fetch("http://localhost:8080/api/playground/saveNode", {
       method: "POST",
@@ -226,32 +265,68 @@ export default function MapPlayground(props: MapPlaygroundProps) {
     return false;
   };
 
-
-  if (status === "loading") return <p>Loading...</p>;
-
   return (
     <>
       <div className="p-4 flex">
 
         <div className={`transition-all duration-300 ${showLoader ? "w-[80vw]" : "w-full"}`}>
           <div className="mb-2 flex gap-2">
-            <button className="px-4 py-2 bg-green-500 text-white rounded" onClick={addNode}>
+            <button className="px-4 py-2 bg-green-500 text-white rounded shadow-md transition duration-200 hover:shadow-green-500 cursor-pointer" onClick={addNode}>
               Add Node
             </button>
-            <button className="px-4 py-2 bg-blue-500 text-white rounded" onClick={startAddRoute}>
+            <button className="px-4 py-2 bg-blue-500 text-white rounded shadow-md transition duration-200 hover:shadow-blue-500 cursor-pointer" onClick={startAddRoute}>
               Add Route
             </button>
-            <button className="px-4 py-2 bg-red-600 text-white rounded" onClick={optimizeRoute}>
+            <button
+              className="px-4 py-2 bg-red-600 text-white rounded shadow-md transition duration-200 hover:shadow-red-600 cursor-pointer"
+              onClick={() => setShowOptions(true)}
+            >
               Optimize Route
             </button>
+
+            {showOptions && (
+              <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-xl shadow-xl flex flex-col gap-4 w-64">
+                  <h2 className="text-lg font-semibold">Choose Optimization</h2>
+
+                  <button
+                    className="px-3 py-2 bg-blue-600 text-white rounded shadow-md hover:shadow-blue-600 cursor-pointer "
+                    onClick={() => {
+                      shortestPath();
+                      setShowOptions(false);
+                    }}
+                  >
+                    Shortest Path
+                  </button>
+
+                  <button
+                    className="px-3 py-2 bg-green-600 text-white rounded hover:shadow-green-600 shadow-md cursor-pointer"
+                    onClick={() => {
+                      optimizeRoute();
+                      setShowOptions(false);
+                    }}
+                  >
+                    Weighted Optimized Path
+                  </button>
+
+                  <button
+                    className="px-2 py-1 text-gray-600 hover:text-black cursor-pointer"
+                    onClick={() => setShowOptions(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+
             {routes.length > 1 && (
-              <button className="px-4 py-2 bg-white text-blue border-2 border-blue-500 rounded" onClick={saveRoute}>
+              <button className="px-4 py-2 bg-white text-blue border-2 border-blue-500 rounded shadow-md transition duration-200 hover:shadow-blue-400 cursor-pointer" onClick={saveRoute}>
                 Save Playground
               </button>
             )}
 
             <button
-              className="px-4 py-2 bg-gray-700 text-white rounded"
+              className="px-4 py-2 bg-gray-700 text-white rounded shadow-md transition duration-200 hover:shadow-neutral-800 cursor-pointer"
               onClick={setLoaderAndShrink}
             >
               See Saved Routes

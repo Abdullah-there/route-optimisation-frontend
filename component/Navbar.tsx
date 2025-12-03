@@ -2,17 +2,16 @@
 
 import React from 'react'
 import Link from 'next/link'
-import { useSession } from 'next-auth/react'
 import { signOut } from "next-auth/react";
 
-const Navbar = () => {
-  const { data: session, status} = useSession();
-
-  if (status == "loading") return <p>Loading ...</p>
+const Navbar = (props: any) => {
+  const session = props.session;
+  
   return (
     <>
-    <nav className='flex justify-between items-center mx-10 h-[9vh]'>
-        <h1 className='text-4xl font-bold'>Project</h1>
+    <nav className='flex flex-col justify-between items-center h-[9vh] fixed top-0 bg-white w-full px-10 '>
+      <div className='flex justify-between items-center w-full h-[8vh]'>
+        <h1 className='text-4xl font-extrabold text-blue-500'>Project</h1>
         <ul className='flex gap-10'>
             <li className='transition-all hover:underline hover:text-xl'><Link href={"/"}>Home</Link></li>
             <li className='transition-all hover:underline hover:text-xl'><Link href={"/playground"}>PlayGround</Link></li>
@@ -26,8 +25,10 @@ const Navbar = () => {
               >Logout</button>
             )}
         </ul>
+        </div>
+    <hr className='text-gray-600 h-[1vh]'/>
     </nav>
-    <hr className='text-gray-600 h-1'/>
+    <div className='h-[9vh]'></div>
     </>
   )
 }
