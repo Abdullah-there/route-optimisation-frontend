@@ -1,101 +1,148 @@
-"use client"
+"use client";
 
-import Navbar from './Navbar'
+import Navbar from "./Navbar";
 import { motion } from "framer-motion";
-import { p } from 'framer-motion/client';
-import { useSession } from 'next-auth/react';
+import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 const Home = () => {
-  const { data: session, status} = useSession();
-  
-    if (status == "loading") return <p>Loading ...</p>
+  const { data: session, status } = useSession();
+
+  if (status === "loading")
+    return (
+      <div className="min-h-screen flex items-center justify-center text-lg">
+        Loading...
+      </div>
+    );
 
   return (
     <>
-      <Navbar session={session}/>
+      <Navbar session={session} />
 
-      <div className="min-h-[90vh] flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-200 px-4 text-center">
+      <section className="relative min-h-[92vh] flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-100 overflow-hidden px-6">
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-blue-200/40 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-sky-200/40 rounded-full blur-3xl"></div>
 
-        <motion.h1
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-4xl md:text-6xl font-extrabold leading-tight mt-10"
-        >
-          AI-Powered{" "}
-          <span className="text-blue-500">
-            Route Optimisation
-          </span>
-          <br />
-          with Real-Time Traffic Simulation
-        </motion.h1>
+        <div className="relative z-10 max-w-5xl text-center">
+          <motion.h1
+            initial={{ opacity: 0, y: -25 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+            className="text-4xl md:text-6xl font-extrabold leading-tight text-gray-900"
+          >
+            AI-Powered{" "}
+            <span className="text-blue-600">
+              Route Optimisation
+            </span>
+            <br />
+            with Real-Time Traffic Simulation
+          </motion.h1>
 
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3, duration: 0.6 }}
-          className="mt-4 text-gray-600 text-lg md:text-xl max-w-2xl"
-        >
-          Build, simulate, and optimise travel routes using advanced AI,
-          interactive maps, and live traffic estimation.
-        </motion.p>
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.6 }}
+            className="mt-6 text-gray-600 text-lg md:text-xl max-w-3xl mx-auto"
+          >
+            Design, simulate, and optimise intelligent travel routes using
+            advanced algorithms, interactive maps, and realistic traffic
+            behavior.
+          </motion.p>
 
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.8 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-14 max-w-5xl w-full px-4"
-        >
-          
-          <div className="bg-white shadow-lg p-6 rounded-2xl hover:shadow-2xl transition cursor-pointer border">
-            <h3 className="text-xl font-semibold text-gray-800">
-              ⚙️ Powerful Backend
-            </h3>
-            <p className="text-gray-600 mt-2">
-              Built with <span className="font-bold">Java & Spring Boot</span>,
-              delivering fast API performance and an efficient route engine.
-            </p>
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+            className="mt-10 flex flex-col sm:flex-row gap-4 justify-center"
+          >
+            <button className="px-8 py-3 rounded-full bg-blue-600 text-white font-semibold shadow-lg hover:bg-blue-700 transition">
+              <Link href={"/playground"}>Get Started</Link>
+            </button>
+            <button className="px-8 py-3 rounded-full border border-blue-500 text-blue-600 font-semibold hover:bg-blue-50 transition">
+              <Link href={"/map"}>See Map</Link>
+            </button>
+          </motion.div>
+        </div>
+      </section>
 
-          <div className="bg-white shadow-lg p-6 rounded-2xl hover:shadow-2xl transition cursor-pointer border">
-            <h3 className="text-xl font-semibold text-gray-800">
-              🖥️ Modern Frontend
-            </h3>
-            <p className="text-gray-600 mt-2">
-              Built using <span className="font-bold">React + Next.js</span> with
-              a dynamic playground and drag-and-drop route editor.
-            </p>
-          </div>
+      <section className="py-20 bg-white">
+        <div className="max-w-6xl mx-auto px-6">
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            transition={{ duration: 0.6 }}
+            viewport={{ once: true }}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+          >
+            {[
+              {
+                title: "Powerful Backend",
+                desc: "Built with Java & Spring Boot for fast, scalable APIs and efficient route computation.",
+              },
+              {
+                title: "Modern Frontend",
+                desc: "Next.js + React interface with smooth animations and an interactive map playground.",
+              },
+              {
+                title: "Reliable Database",
+                desc: "PostgreSQL with Spring JPA ensures secure and consistent storage of routes and users.",
+              },
+            ].map((item, i) => (
+              <div
+                key={i}
+                className="backdrop-blur-lg bg-blue-50/60 border border-blue-100 p-8 rounded-3xl shadow-lg hover:shadow-2xl transition"
+              >
+                <h3 className="text-xl font-semibold text-gray-800">
+                  {item.title}
+                </h3>
+                <p className="text-gray-600 mt-3">{item.desc}</p>
+              </div>
+            ))}
+          </motion.div>
+        </div>
+      </section>
+      
+      <section className="py-20 bg-gradient-to-b from-white to-blue-50">
+        <div className="max-w-4xl mx-auto text-center px-6">
+          <motion.h2
+            initial={{ opacity: 0, y: 15 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            viewport={{ once: true }}
+            className="text-3xl font-bold text-gray-900"
+          >
+            ✨ Additional Capabilities
+          </motion.h2>
 
-          <div className="bg-white shadow-lg p-6 rounded-2xl hover:shadow-2xl transition cursor-pointer border">
-            <h3 className="text-xl font-semibold text-gray-800">
-              🗄️ Robust Database
-            </h3>
-            <p className="text-gray-600 mt-2">
-              Uses <span className="font-bold">PostgreSQL + Spring JPA</span> to
-              store nodes, routes, and user data securely.
-            </p>
-          </div>
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.7, duration: 0.8 }}
-          className="mt-12 max-w-3xl text-gray-700 px-4 mb-20"
-        >
-          <h2 className="text-2xl font-bold">✨ Additional Features</h2>
-          <ul className="mt-3 space-y-2 text-lg">
+          <ul className="mt-8 space-y-3 text-lg text-gray-700">
             <li>• Interactive node placement & route creation</li>
-            <li>• Traffic-based path optimization algorithms</li>
-            <li>• Save/load custom playground maps</li>
-            <li>• Fully responsive & modern UI</li>
-            <li>• Real-time simulation behavior</li>
+            <li>• Traffic-based shortest path optimisation</li>
+            <li>• Save & load custom simulation maps</li>
+            <li>• Fully responsive modern UI</li>
+            <li>• Real-time traffic simulation behavior</li>
           </ul>
-        </motion.div>
-      </div>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="bg-blue-600 text-white py-10">
+        <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div>
+            <h3 className="text-xl font-bold">
+              AI Route Optimisation System
+            </h3>
+            <p className="text-blue-100 mt-1 text-sm">
+              Smart routing with real-time traffic simulation
+            </p>
+          </div>
+
+          <div className="text-sm text-blue-100">
+            © {new Date().getFullYear()} All Rights Reserved
+          </div>
+        </div>
+      </footer>
     </>
-  )
-}
+  );
+};
 
 export default Home;

@@ -267,149 +267,158 @@ export default function MapPlayground(props: MapPlaygroundProps) {
 
   return (
     <>
-      <div className="p-4 flex">
+  <div className="p-6 flex justify-center items-start min-h-screen">
 
-        <div className={`transition-all duration-300 ${showLoader ? "w-[80vw]" : "w-full"}`}>
-          <div className="mb-2 flex gap-2">
-            <button className="px-4 py-2 bg-green-500 text-white rounded shadow-md transition duration-200 hover:shadow-green-500 cursor-pointer" onClick={addNode}>
-              Add Node
-            </button>
-            <button className="px-4 py-2 bg-blue-500 text-white rounded shadow-md transition duration-200 hover:shadow-blue-500 cursor-pointer" onClick={startAddRoute}>
-              Add Route
-            </button>
-            <button
-              className="px-4 py-2 bg-red-600 text-white rounded shadow-md transition duration-200 hover:shadow-red-600 cursor-pointer"
-              onClick={() => setShowOptions(true)}
-            >
-              Optimize Route
-            </button>
+    <div className={`transition-all duration-500 ${showLoader ? "w-[80vw]" : "w-full"}`}>
+      {/* Toolbar */}
+      <div className="mb-5 flex flex-wrap gap-3 bg-white/30 backdrop-blur-xl rounded-3xl p-4 shadow-lg border border-white/20">
+        <button
+          className="px-5 py-2 rounded-full bg-green-500 text-white font-semibold shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 cursor-pointer"
+          onClick={addNode}
+        >
+          Add Node
+        </button>
 
-            {showOptions && (
-              <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                <div className="bg-white p-6 rounded-xl shadow-xl flex flex-col gap-4 w-64">
-                  <h2 className="text-lg font-semibold">Choose Optimization</h2>
+        <button
+          className="px-5 py-2 rounded-full bg-blue-500 text-white font-semibold shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 cursor-pointer"
+          onClick={startAddRoute}
+        >
+          Add Route
+        </button>
 
-                  <button
-                    className="px-3 py-2 bg-blue-600 text-white rounded shadow-md hover:shadow-blue-600 cursor-pointer "
-                    onClick={() => {
-                      shortestPath();
-                      setShowOptions(false);
-                    }}
-                  >
-                    Shortest Path
-                  </button>
+        <button
+          className="px-5 py-2 rounded-full bg-red-600 text-white font-semibold shadow-md hover:shadow-lg hover:scale-105 transition-transform duration-300 cursor-pointer"
+          onClick={() => setShowOptions(true)}
+        >
+          Optimize
+        </button>
 
-                  <button
-                    className="px-3 py-2 bg-green-600 text-white rounded hover:shadow-green-600 shadow-md cursor-pointer"
-                    onClick={() => {
-                      optimizeRoute();
-                      setShowOptions(false);
-                    }}
-                  >
-                    Weighted Optimized Path
-                  </button>
-
-                  <button
-                    className="px-2 py-1 text-gray-600 hover:text-black cursor-pointer"
-                    onClick={() => setShowOptions(false)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {routes.length > 1 && (
-              <button className="px-4 py-2 bg-white text-blue border-2 border-blue-500 rounded shadow-md transition duration-200 hover:shadow-blue-400 cursor-pointer" onClick={saveRoute}>
-                Save Playground
-              </button>
-            )}
-
-            <button
-              className="px-4 py-2 bg-gray-700 text-white rounded shadow-md transition duration-200 hover:shadow-neutral-800 cursor-pointer"
-              onClick={setLoaderAndShrink}
-            >
-              See Saved Routes
-            </button>
-          </div>
-
-          <div className="relative w-[95%] h-[500px] border border-gray-300 bg-white">
-
-            {routes.map((r, i) => {
-              const start = nodes.find((n) => n.nodeid === r.from);
-              const end = nodes.find((n) => n.nodeid === r.to);
-              if (!start || !end) return null;
-
-              const x1 = start.x + 20;
-              const y1 = start.y + 20;
-              const x2 = end.x + 20;
-              const y2 = end.y + 20;
-              const length = Math.hypot(x2 - x1, y2 - y1);
-              const angle = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
-
-              const midX = (x1 + x2) / 2;
-              const midY = (y1 + y2) / 2;
-
-              return (
-                <React.Fragment key={i}>
-                  <div
-                    className={`absolute ${isOptimizedEdge(r.from, r.to) ? "bg-red-600" : "bg-blue-500"}`}
-                    style={{
-                      width: length,
-                      height: 4,
-                      left: x1,
-                      top: y1,
-                      transform: `rotate(${angle}deg)`,
-                      transformOrigin: "0 0",
-                    }}
-                    onClick={() => editTraffic(i)}
-                  />
-                  <div
-                    className="absolute px-1 text-black font-bold bg-white rounded"
-                    style={{
-                      left: midX - 15,
-                      top: midY - 10,
-                    }}
-                  >
-                    {r.traffic}
-                  </div>
-                </React.Fragment>
-              );
-            })}
-
-            {nodes.map((n) => (
-              <Rnd
-                key={n.nodeid}
-                size={{ width: 40, height: 40 }}
-                position={{ x: n.x, y: n.y }}
-                bounds="parent"
-                onDragStop={(e, d) =>
-                  setNodes(nodes.map((nd) => (nd.nodeid === n.nodeid ? { ...nd, x: d.x, y: d.y } : nd)))
-                }
-              >
-                <div
-                  onClick={() => handleNodeClick(n.nodeid)}
-                  className={`w-full h-full flex items-center justify-center rounded-full text-white font-bold cursor-pointer 
-                  ${selectedNode === n.nodeid ? "bg-yellow-500" : "bg-blue-400"}
-                `}
-                >
-                  {n.label}
-                </div>
-
-              </Rnd>
-            ))}
-          </div>
-        </div>
-
-        {showLoader && (
-          <PlaygroundLoader
-            userId={session?.user?.email as string}
-            onLoadPlayground={loadPlayground}
-            onClose={setLoaderAndShrink}
-          />
+        {routes.length > 1 && (
+          <button
+            className="px-5 py-2 rounded-full border-2 border-blue-500 text-blue-600 font-semibold hover:bg-blue-50 hover:scale-105 transition-transform duration-300 cursor-pointer"
+            onClick={saveRoute}
+          >
+            Save Playground
+          </button>
         )}
 
+        <button
+          className="px-5 py-2 rounded-full bg-gray-800 text-white font-semibold shadow-md hover:shadow-xl hover:scale-105 transition-transform duration-300 cursor-pointer"
+          onClick={setLoaderAndShrink}
+        >
+          Saved Routes
+        </button>
       </div>
-    </>
+
+      {/* Optimize Modal */}
+      {showOptions && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 backdrop-blur-sm">
+          <div className="bg-white/90 rounded-3xl p-6 w-72 shadow-2xl border border-white/20 flex flex-col gap-4">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">
+              Choose Optimization
+            </h2>
+
+            <button
+              className="w-full py-2 rounded-full bg-blue-600 text-white font-semibold hover:bg-blue-700 shadow-md hover:shadow-lg transition duration-300"
+              onClick={() => { shortestPath(); setShowOptions(false); }}
+            >
+              Shortest Path
+            </button>
+
+            <button
+              className="w-full py-2 rounded-full bg-green-600 text-white font-semibold hover:bg-green-700 shadow-md hover:shadow-lg transition duration-300"
+              onClick={() => { optimizeRoute(); setShowOptions(false); }}
+            >
+              Traffic Optimized
+            </button>
+
+            <button
+              className="mt-3 w-full text-gray-500 hover:text-gray-800 font-medium text-sm transition duration-200"
+              onClick={() => setShowOptions(false)}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Map Canvas */}
+      <div className="relative w-[100%] h-[520px] bg-white rounded-3xl shadow-2xl border border-white/30 overflow-hidden">
+        {/* Routes */}
+        {routes.map((r, i) => {
+          const start = nodes.find((n) => n.nodeid === r.from);
+          const end = nodes.find((n) => n.nodeid === r.to);
+          if (!start || !end) return null;
+
+          const x1 = start.x + 20;
+          const y1 = start.y + 20;
+          const x2 = end.x + 20;
+          const y2 = end.y + 20;
+          const length = Math.hypot(x2 - x1, y2 - y1);
+          const angle = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI;
+          const midX = (x1 + x2) / 2;
+          const midY = (y1 + y2) / 2;
+
+          return (
+            <React.Fragment key={i}>
+              <div
+                className={`absolute h-2 rounded-lg cursor-pointer ${isOptimizedEdge(r.from, r.to) ? "bg-gradient-to-r from-red-500 to-pink-500 shadow-lg" : "bg-gradient-to-r from-blue-400 to-sky-500 shadow-md"}`}
+                style={{
+                  width: length,
+                  left: x1,
+                  top: y1,
+                  transform: `rotate(${angle}deg)`,
+                  transformOrigin: "0 0",
+                }}
+                onClick={() => editTraffic(i)}
+              />
+              <div
+                className="absolute px-2 py-0.5 text-black font-semibold bg-white/80 rounded-md text-sm shadow-sm"
+                style={{ left: midX - 15, top: midY - 10 }}
+              >
+                {r.traffic}
+              </div>
+            </React.Fragment>
+          );
+        })}
+
+        {/* Nodes */}
+        {nodes.map((n) => (
+          <Rnd
+            key={n.nodeid}
+            size={{ width: 44, height: 44 }}
+            position={{ x: n.x, y: n.y }}
+            bounds="parent"
+            onDragStop={(e, d) =>
+              setNodes(nodes.map((nd) => (nd.nodeid === n.nodeid ? { ...nd, x: d.x, y: d.y } : nd)))
+            }
+          >
+            <div
+              onClick={() => handleNodeClick(n.nodeid)}
+              className={`w-full h-full flex items-center justify-center rounded-full font-bold cursor-pointer shadow-xl transition-all duration-300
+                ${selectedNode === n.nodeid
+                  ? "bg-yellow-400 text-gray-900 scale-110 shadow-2xl"
+                  : "bg-gradient-to-br from-blue-400 to-sky-500 text-white hover:scale-105"}
+              `}
+            >
+              {n.label}
+            </div>
+          </Rnd>
+        ))}
+      </div>
+    </div>
+
+    {/* Loader */}
+    {showLoader && (
+      <PlaygroundLoader
+        userId={session?.user?.email as string}
+        onLoadPlayground={loadPlayground}
+        onClose={setLoaderAndShrink}
+      />
+    )}
+
+  </div>
+</>
+
   );
 }

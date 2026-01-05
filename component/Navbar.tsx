@@ -1,36 +1,65 @@
-"use client"
+"use client";
 
-import React from 'react'
-import Link from 'next/link'
+import React from "react";
+import Link from "next/link";
 import { signOut } from "next-auth/react";
 
-const Navbar = (props: any) => {
-  const session = props.session;
-  
+const Navbar = ({ session }: any) => {
   return (
     <>
-    <nav className='flex flex-col justify-between items-center h-[9vh] fixed top-0 bg-white w-full px-10 '>
-      <div className='flex justify-between items-center w-full h-[8vh]'>
-        <h1 className='text-4xl font-extrabold text-blue-500'>Project</h1>
-        <ul className='flex gap-10'>
-            <li className='transition-all hover:underline hover:text-xl'><Link href={"/"}>Home</Link></li>
-            <li className='transition-all hover:underline hover:text-xl'><Link href={"/playground"}>PlayGround</Link></li>
-            <li className='transition-all hover:underline hover:text-xl'><Link href={"/map"}>Map</Link></li>
-            {!session && (
-              <li className='transition-all hover:underline hover:text-xl bg-blue-500 text-white hover:bg-white hover:text-blue-500 border-2 border-blue-500 px-4 rounded-md'><Link href={"/auth/login"}>Login</Link></li>
-            )}
-            {session && (
-              <button className='transition-all hover:underline hover:text-xl bg-blue-500 text-white hover:bg-white hover:text-blue-500 border-2 border-blue-500 px-4 rounded-md cursor-pointer'
-                onClick={() => signOut()}
-              >Logout</button>
-            )}
-        </ul>
-        </div>
-    <hr className='text-gray-600 h-[1vh]'/>
-    </nav>
-    <div className='h-[9vh]'></div>
-    </>
-  )
-}
+      <nav className="fixed top-0 z-50 w-full bg-white/80 backdrop-blur-lg border-b border-blue-100 shadow-sm">
+        <div className="max-w-7xl mx-auto px-8 h-[72px] flex items-center justify-between">
+          
+          {/* LOGO */}
+          <Link href="/">
+            <h1 className="text-3xl font-extrabold tracking-tight text-blue-600">
+              Route<span className="text-gray-800">AI</span>
+            </h1>
+          </Link>
 
-export default Navbar
+          {/* NAV LINKS */}
+          <ul className="flex items-center gap-8 text-gray-700 font-medium">
+            <li className="hover:text-blue-600 transition">
+              <Link href="/">Home</Link>
+            </li>
+
+            <li className="hover:text-blue-600 transition">
+              <Link href="/playground">Playground</Link>
+            </li>
+
+            <li className="hover:text-blue-600 transition">
+              <Link href="/map">Map</Link>
+            </li>
+
+            {!session && (
+              <li>
+                <Link
+                  href="/auth/login"
+                  className="px-5 py-2 rounded-full bg-blue-600 text-white font-semibold shadow-md hover:bg-blue-700 transition"
+                >
+                  Login
+                </Link>
+              </li>
+            )}
+
+            {session && (
+              <li>
+                <button
+                  onClick={() => signOut()}
+                  className="px-5 py-2 rounded-full border border-blue-500 text-blue-600 font-semibold hover:bg-blue-50 transition"
+                >
+                  Logout
+                </button>
+              </li>
+            )}
+          </ul>
+        </div>
+      </nav>
+
+      {/* Spacer for fixed navbar */}
+      <div className="h-[72px]"></div>
+    </>
+  );
+};
+
+export default Navbar;
